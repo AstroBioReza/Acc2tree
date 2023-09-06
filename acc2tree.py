@@ -8,7 +8,7 @@ from Bio import Entrez, SeqIO
 from Bio.SeqFeature import BiopythonParserWarning
 
 def perform_blast_search(accession_id, max_target_seqs):
-    Entrez.email = 'moresha7@gmail.com'
+    Entrez.email = input("Please Enter your email: ")
     print("Performing BLAST search...")
     result_handle = NCBIWWW.qblast(
         "blastp",
@@ -32,9 +32,9 @@ def retrieve_protein_sequence(accession):
         return None
         
 def main():
-    # Filter out the specific "bond" qualifier warning
+    
     warnings.filterwarnings("ignore", category=BiopythonParserWarning, message="Dropping bond qualifier in feature location")
-    accession_id = input("Enter the accession ID: ")  # Replace with your accession ID
+    accession_id = input("Enter the accession ID: ") 
     max_target_seqs = input("Enter your desired Maximum Target Sequences: ")
     while True:
         preferred_tree = input("What's your preferred program for making the tree? 1 for RAxML 2 for IQtree: ")
@@ -46,19 +46,19 @@ def main():
 
     blast_records = NCBIXML.parse(result_handle)
     selected_records = []
-    fasta_sequence_dict = {}  # Initialize the dictionary to store FASTA sequences
+    fasta_sequence_dict = {}  
     
-    # Inside the for loop that processes blast records:
+    
     for blast_record in blast_records:
         try:
-            taxon_records = {}  # Dictionary to store records per taxon
+            taxon_records = {}  
             for alignment in blast_record.alignments:
                 accession = alignment.accession
                 e_value = alignment.hsps[0].expect
                 
                 definition = alignment.hit_def
-                scientific_name = definition.split("[")[1].split("]")[0]  # Extract scientific name
-                taxon = scientific_name.lower()  # Convert taxon to lowercase for consistent comparison
+                scientific_name = definition.split("[")[1].split("]")[0] 
+                taxon = scientific_name.lower()  
 
                 if accession.startswith("WP_"):
                     if taxon not in taxon_records:
@@ -72,10 +72,10 @@ def main():
                     else:
                         if e_value < taxon_records[taxon][0][1]:
                             taxon_records[taxon][0] = (accession, e_value)
-                            # Remove other records for this taxon
+                            
                             selected_records = [rec for rec in selected_records if rec[0] != taxon]
 
-            # Include records for organisms with only one accession ID
+            
             for taxon, records in taxon_records.items():
                 if len(records) == 1:
                     selected_records.append((taxon, records[0][0], records[0][1]))
@@ -88,22 +88,22 @@ def main():
         selected_records.sort(key=lambda x: (x[1].startswith("WP_"), x[2]))
 
         fasta_sequences = []
-        fasta_records = {}  # Dictionary to store FASTA records
+        fasta_records = {}  
                 
         for i, record in enumerate(selected_records):
             protein_record = retrieve_protein_sequence(record[1])
             if protein_record:
-                fasta_sequences.append(protein_record.format("fasta"))  # Store formatted FASTA record
-                fasta_records[record[1]] = protein_record.format("fasta")  # Store the formatted FASTA record
-                fasta_sequence_dict[record[1]] = protein_record.seq  # Store the associated sequence
+                fasta_sequences.append(protein_record.format("fasta"))  
+                fasta_records[record[1]] = protein_record.format("fasta")  
+                fasta_sequence_dict[record[1]] = protein_record.seq  
         
-                organism = protein_record.annotations.get('organism', '')  # Get organism information from protein_record
+                organism = protein_record.annotations.get('organism', '')  
               
 
             print(f"\rRecord {i+1}/{len(selected_records)} processed", end="", flush=True)
 
 
-        # Save FASTA records to a single file
+        
         directory_path = f'C:\\ACC2TREE\\{accession_id}'
         if not os.path.exists(directory_path):
             os.makedirs(directory_path)
@@ -113,19 +113,19 @@ def main():
 
         print("\nCombined FASTA sequences saved to combined_fasta_sequences.fasta")
         
-        # Writing results to a CSV file
+        
         print("Writing results to CSV...")
         with open(f'{directory_path}\\blast_results.csv', "w", newline="") as csvfile:
             csv_writer = csv.writer(csvfile)
             csv_writer.writerow(["DEFINITION", "Accession ID", "e value", "FASTA Sequence", "Link"])
             for i in range(len(selected_records)):
                 taxon, accession, e_value = selected_records[i]
-                fasta_sequence = fasta_sequence_dict.get(accession, "N/A")  # Get the associated sequence or "N/A"
-                link = f"https://www.ncbi.nlm.nih.gov/protein/{accession}"  # Construct the URL
+                fasta_sequence = fasta_sequence_dict.get(accession, "N/A") 
+                link = f"https://www.ncbi.nlm.nih.gov/protein/{accession}"  
                 csv_writer.writerow([taxon, accession, e_value, fasta_sequence, link])
                 print(f"\rRecord {i+1}/{len(selected_records)} written to CSV", end="", flush=True)
                 time.sleep(1)
-        # Run Muscle alignment 
+         
         try:
             print("\nMuscle is Aligning the sequences...")
             subprocess.run(['muscle', '-align', f'{directory_path}\\combined_fasta_sequences.fasta', '-output', f'{directory_path}\\aligned_output_file'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
@@ -133,7 +133,7 @@ def main():
         except subprocess.CalledProcessError:
             print("Alignment failed.")
             
-        # Run RAxML     
+             
     def perform_RAxML(directory_path):            
         print("\nRAxML is making the tree...")
         try:
@@ -142,7 +142,7 @@ def main():
         except subprocess.CalledProcessError:
             print("Making the tree failed.")
             
-        # Run IQtree      
+              
     def perform_IQtree(directory_path):
         print("\nIQtree is making the tree...")
         try:
