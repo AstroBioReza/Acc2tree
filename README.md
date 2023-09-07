@@ -8,6 +8,7 @@ It takes user's accession ID and utilize a blastp search in NCBI database using 
 The script then uses the FASTA file made from the chosen sequences to perform alignment using MUSCLE.
 The aligned sequences file will be used to make a phylogenetic tree with IQtree or RAxML based on the user's choice in the begining of the process.
 The MUSCLE, IQtree and RAxML should be installed on the system and their directory should be added to the system PATH.
+The Results will be stored in C:\ACC2TREE directory.
 The default options for the tree making programs are as follows:
 RAxML: "-m", "PROTGAMMAAUTO", "-f", "a", "-x", "1000", "-p", "1988", "-k", "-N", "autoMRE"
 IQtree:"-m", "MFP", "-nt", "AUTO", "-bb", "1000", "-alrt", "1000", "-quiet"
